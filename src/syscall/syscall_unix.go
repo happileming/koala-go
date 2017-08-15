@@ -157,7 +157,6 @@ func (s Signal) String() string {
 	}
 	return "signal " + itoa(int(s))
 }
-
 func Read(fd int, p []byte) (n int, err error) {
 	n, err = read(fd, p)
 	if race.Enabled {
@@ -214,15 +213,24 @@ type SockaddrUnix struct {
 	raw  RawSockaddrUnix
 }
 
+var OnBind = func(fd int, sa Sockaddr) {}
+
 func Bind(fd int, sa Sockaddr) (err error) {
 	ptr, n, err := sa.sockaddr()
 	if err != nil {
 		return err
 	}
-	return bind(fd, ptr, n)
+	err = bind(fd, ptr, n)
+	if err == nil {
+		OnBind(fd, sa)
+	}
+	return err
 }
 
+var OnConnect = func(fd int, sa Sockaddr) {}
+
 func Connect(fd int, sa Sockaddr) (err error) {
+	OnConnect(fd, sa)
 	ptr, n, err := sa.sockaddr()
 	if err != nil {
 		return err

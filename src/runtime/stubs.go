@@ -20,6 +20,26 @@ func add(p unsafe.Pointer, x uintptr) unsafe.Pointer {
 // that fetch the g directly (from TLS or from the dedicated register).
 func getg() *g
 
+func SetCurrentGoRoutineIsKoala() {
+	getg().isKoala = true
+}
+
+func GetCurrentGoRoutineIsKoala() bool {
+	return getg().isKoala
+}
+
+func GetCurrentGoRoutineId() int64 {
+	_g_ := getg()
+	if _g_.delegatedFromGoid != 0 {
+		return _g_.delegatedFromGoid
+	}
+	return _g_.goid
+}
+
+func SetDelegatedFromGoRoutineId(delegatedFromGooid int64) {
+	getg().delegatedFromGoid = delegatedFromGooid
+}
+
 // mcall switches from the g to the g0 stack and invokes fn(g),
 // where g is the goroutine that made the call.
 // mcall saves g's current PC/SP in g->sched so that it can be restored later.

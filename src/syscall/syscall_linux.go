@@ -432,6 +432,9 @@ func anyToSockaddr(rsa *RawSockaddrAny) (Sockaddr, error) {
 	return nil, EAFNOSUPPORT
 }
 
+var OnAccept = func(serverSocketFD int, clientSocketFD int, sa Sockaddr) {
+}
+
 func Accept(fd int) (nfd int, sa Sockaddr, err error) {
 	var rsa RawSockaddrAny
 	var len _Socklen = SizeofSockaddrAny
@@ -443,6 +446,8 @@ func Accept(fd int) (nfd int, sa Sockaddr, err error) {
 	if err != nil {
 		Close(nfd)
 		nfd = 0
+	} else {
+		OnAccept(fd, nfd, sa)
 	}
 	return
 }
@@ -461,6 +466,8 @@ func Accept4(fd int, flags int) (nfd int, sa Sockaddr, err error) {
 	if err != nil {
 		Close(nfd)
 		nfd = 0
+	} else {
+		OnAccept(fd, nfd, sa)
 	}
 	return
 }

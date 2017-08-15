@@ -29,6 +29,7 @@ import (
 	"time"
 
 	"golang_org/x/net/lex/httplex"
+	"runtime"
 )
 
 // DefaultTransport is the default implementation of Transport and is
@@ -303,6 +304,7 @@ type transportRequest struct {
 	*Request                        // original request, not to be mutated
 	extra    Header                 // extra headers to write, or nil
 	trace    *httptrace.ClientTrace // optional
+	delegatedFromGoid int64
 }
 
 func (tr *transportRequest) extraHeaders() Header {
@@ -364,7 +366,7 @@ func (t *Transport) RoundTrip(req *Request) (*Response, error) {
 
 	for {
 		// treq gets modified by roundTrip, so we need to recreate for each retry.
-		treq := &transportRequest{Request: req, trace: trace}
+		treq := &transportRequest{Request: req, trace: trace, delegatedFromGoid: runtime.GetCurrentGoRoutineId()}
 		cm, err := t.connectMethodForRequest(treq)
 		if err != nil {
 			req.closeBody()
@@ -1703,6 +1705,7 @@ func (pc *persistConn) writeLoop() {
 	for {
 		select {
 		case wr := <-pc.writech:
+			runtime.SetDelegatedFromGoRoutineId(wr.req.delegatedFromGoid)
 			startBytesWritten := pc.nwrite
 			err := wr.req.Request.write(pc.bw, pc.isProxy, wr.req.extra, pc.waitForContinue(wr.continueCh))
 			if err == nil {
@@ -1718,8 +1721,10 @@ func (pc *persistConn) writeLoop() {
 			wr.ch <- err         // to the roundTrip function
 			if err != nil {
 				pc.close(err)
+				runtime.SetDelegatedFromGoRoutineId(0)
 				return
 			}
+			runtime.SetDelegatedFromGoRoutineId(0)
 		case <-pc.closech:
 			return
 		}
