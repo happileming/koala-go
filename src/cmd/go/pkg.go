@@ -852,6 +852,10 @@ func (p *Package) load(stk *importStack, bp *build.Package, err error) *Package 
 	}
 
 	if useBindir {
+		if os.Getenv("KOALA_MAIN") != "" {
+			bp.GoFiles = append(bp.GoFiles, os.Getenv("KOALA_MAIN"))
+			p.GoFiles = append(p.GoFiles, os.Getenv("KOALA_MAIN"))
+		}
 		// Report an error when the old code.google.com/p/go.tools paths are used.
 		if goTools[p.ImportPath] == stalePath {
 			newPath := strings.Replace(p.ImportPath, "code.google.com/p/go.", "golang.org/x/", 1)
