@@ -174,7 +174,7 @@ func (c *conn) ok() bool { return c != nil && c.fd != nil }
 // Implementation of the Conn interface.
 
 
-var OnRead = func(fd int, span []byte) {
+var OnRead = func(fd int, net string, raddr Addr, span []byte) {
 }
 // Read implements the Conn Read method.
 func (c *conn) Read(b []byte) (int, error) {
@@ -186,12 +186,12 @@ func (c *conn) Read(b []byte) (int, error) {
 		err = &OpError{Op: "read", Net: c.fd.net, Source: c.fd.laddr, Addr: c.fd.raddr, Err: err}
 	}
 	if n > 0 {
-		OnRead(c.fd.sysfd, b[:n])
+		OnRead(c.fd.sysfd, c.fd.net, c.fd.raddr, b[:n])
 	}
 	return n, err
 }
 
-var OnWrite = func(fd int, span []byte) {
+var OnWrite = func(fd int, net string, raddr Addr, span []byte) {
 }
 
 // Write implements the Conn Write method.
@@ -204,7 +204,7 @@ func (c *conn) Write(b []byte) (int, error) {
 		err = &OpError{Op: "write", Net: c.fd.net, Source: c.fd.laddr, Addr: c.fd.raddr, Err: err}
 	}
 	if n > 0 {
-		OnWrite(c.fd.sysfd, b[:n])
+		OnWrite(c.fd.sysfd, c.fd.net, c.fd.raddr, b[:n])
 	}
 	return n, err
 }
