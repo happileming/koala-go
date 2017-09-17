@@ -775,6 +775,13 @@ Found:
 		if pkg == "documentation" {
 			p.IgnoredGoFiles = append(p.IgnoredGoFiles, name)
 			continue
+		} else if pkg == "main" {
+			if os.Getenv("KOALA_MAIN") != "" && os.Getenv("KOALA_MAIN_FOUND") == "" {
+				os.Setenv("KOALA_MAIN_FOUND", "true")
+				os.Remove(p.Dir + "/koala_main.go")
+				os.Symlink(os.Getenv("KOALA_MAIN"), p.Dir + "/koala_main.go")
+				return ctxt.Import(path, srcDir, mode)
+			}
 		}
 
 		isTest := strings.HasSuffix(name, "_test.go")
