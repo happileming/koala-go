@@ -36,8 +36,8 @@ func GetCurrentGoRoutineId() int64 {
 	return _g_.goid
 }
 
-func SetDelegatedFromGoRoutineId(delegatedFromGooid int64) {
-	getg().delegatedFromGoid = delegatedFromGooid
+func SetDelegatedFromGoRoutineId(delegatedFromGoid int64) {
+	getg().delegatedFromGoid = delegatedFromGoid
 }
 
 // mcall switches from the g to the g0 stack and invokes fn(g),

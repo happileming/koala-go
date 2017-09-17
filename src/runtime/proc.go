@@ -2315,8 +2315,12 @@ func gopreempt_m(gp *g) {
 	goschedImpl(gp)
 }
 
+var OnGoRoutineExit = func(goid int64) {
+}
+
 // Finishes execution of the current goroutine.
 func goexit1() {
+	OnGoRoutineExit(GetCurrentGoRoutineId())
 	if raceenabled {
 		racegoend()
 	}
