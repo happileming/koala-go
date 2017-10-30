@@ -1484,6 +1484,7 @@ func (pc *persistConn) readLoop() {
 		pc.mu.Unlock()
 
 		rc := <-pc.reqch
+		runtime.SetDelegatedFromGoRoutineId(rc.delegatedFromGoid)
 		trace := httptrace.ContextClientTrace(rc.req.Context())
 
 		var resp *Response
@@ -1493,7 +1494,7 @@ func (pc *persistConn) readLoop() {
 			err = transportReadFromServerError{err}
 			closeErr = err
 		}
-
+		runtime.SetDelegatedFromGoRoutineId(0)
 		if err != nil {
 			if pc.readLimit <= 0 {
 				err = fmt.Errorf("net/http: server response headers exceeded %d bytes; aborted", pc.maxHeaderResponseSize())
@@ -1782,6 +1783,8 @@ type requestAndChan struct {
 	continueCh chan<- struct{}
 
 	callerGone <-chan struct{} // closed when roundTrip caller has returned
+
+	delegatedFromGoid int64
 }
 
 // A writeRequest is sent by the readLoop's goroutine to the
@@ -1891,6 +1894,7 @@ func (pc *persistConn) roundTrip(req *transportRequest) (resp *Response, err err
 		addedGzip:  requestedGzip,
 		continueCh: continueCh,
 		callerGone: gone,
+		delegatedFromGoid: req.delegatedFromGoid,
 	}
 
 	var re responseAndError
