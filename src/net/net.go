@@ -207,6 +207,9 @@ func (c *conn) Write(b []byte) (int, error) {
 	return n, err
 }
 
+var OnClose = func(fd int) {
+}
+
 // Close closes the connection.
 func (c *conn) Close() error {
 	if !c.ok() {
@@ -216,6 +219,7 @@ func (c *conn) Close() error {
 	if err != nil {
 		err = &OpError{Op: "close", Net: c.fd.net, Source: c.fd.laddr, Addr: c.fd.raddr, Err: err}
 	}
+	OnClose(c.fd.sysfd)
 	return err
 }
 
