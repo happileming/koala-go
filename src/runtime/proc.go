@@ -2320,7 +2320,8 @@ var OnGoRoutineExit = func(goid int64) {
 
 // Finishes execution of the current goroutine.
 func goexit1() {
-	OnGoRoutineExit(GetCurrentGoRoutineId())
+	_g_ := getg()
+	OnGoRoutineExit(_g_.goid)
 	if raceenabled {
 		racegoend()
 	}
