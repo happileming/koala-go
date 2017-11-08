@@ -2321,7 +2321,9 @@ var OnGoRoutineExit = func(goid int64) {
 // Finishes execution of the current goroutine.
 func goexit1() {
 	_g_ := getg()
+	_g_.delegatedFromGoid = 0
 	OnGoRoutineExit(_g_.goid)
+	_g_.isKoala = false
 	if raceenabled {
 		racegoend()
 	}
