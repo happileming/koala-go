@@ -865,6 +865,8 @@ func (t *Transport) dial(ctx context.Context, network, addr string) (net.Conn, e
 // and/or setting up TLS.  If this doesn't return an error, the persistConn
 // is ready to write requests to.
 func (t *Transport) getConn(treq *transportRequest, cm connectMethod) (*persistConn, error) {
+	runtime.SetDelegatedFromGoRoutineId(treq.delegatedFromGoid)
+	defer runtime.SetDelegatedFromGoRoutineId(0)
 	req := treq.Request
 	trace := treq.trace
 	ctx := req.Context()
@@ -907,6 +909,8 @@ func (t *Transport) getConn(treq *transportRequest, cm connectMethod) (*persistC
 	t.setReqCanceler(req, func(err error) { cancelc <- err })
 
 	go func() {
+		runtime.SetDelegatedFromGoRoutineId(treq.delegatedFromGoid)
+		defer runtime.SetDelegatedFromGoRoutineId(0)
 		pc, err := t.dialConn(ctx, cm)
 		dialc <- dialRes{pc, err}
 	}()
